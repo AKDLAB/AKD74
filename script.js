@@ -356,6 +356,56 @@ function narrationFor(p, id) {
   return parts.join(" ");
 }
 
+var PIE_COLORS = ["#2a6389", "#3480ab", "#44a0cd", "#68c1e8", "#a6e8ff"];
+
+function shade(hex, f) {
+  var n = parseInt(hex.slice(1), 16);
+  var c = [n >> 16, (n >> 8) & 255, n & 255].map(function (v) { return Math.round(v * f); });
+  return "rgb(" + c.join(",") + ")";
+}
+
+function pieMarkup(scholar) {
+  var split = scholar.split;
+  var total = split.reduce(function (a, s) { return a + s[1]; }, 0);
+  var C = 2 * Math.PI * 40;
+  var gap = 1.4;
+  var start = 0;
+  var segs = [];
+  split.forEach(function (s, i) {
+    if (!s[1]) return;
+    var len = s[1] / total * C;
+    segs.push({ i: i, len: Math.max(len - gap, 0.8), off: -start, color: PIE_COLORS[i] });
+    start += len;
+  });
+
+  function layer(z, f) {
+    return '<svg class="pie-layer' + (f ? "" : " pie-top") + '" viewBox="0 0 100 100" style="transform:translateZ(' + z + 'px)">' +
+      segs.map(function (s, n) {
+        return '<circle class="pie-seg" data-i="' + s.i + '" cx="50" cy="50" r="40" transform="rotate(-90 50 50)" style="stroke:' +
+          (f ? shade(s.color, f) : s.color) + ";--val:" + s.len.toFixed(2) + ";--len:" + C.toFixed(2) + ";--off:" + s.off.toFixed(2) + ";--n:" + n + '"/>';
+      }).join("") + "</svg>";
+  }
+
+  var layers = "";
+  for (var z = -14; z < 0; z += 2) layers += layer(z, 0.38 + (z + 14) * 0.012);
+  layers += layer(0, 0);
+
+  var label = split.filter(function (s) { return s[1]; }).map(function (s) { return s[0] + ": " + s[1].toLocaleString("en-US"); }).join(", ");
+  var legend = split.map(function (s, i) {
+    if (!s[1]) return "";
+    return '<li data-i="' + i + '"><span class="pie-sw" style="background:' + PIE_COLORS[i] + '"></span>' + s[0] +
+      "<b>" + s[1].toLocaleString("en-US") + "</b><em>" + Math.round(s[1] / total * 100) + "%</em></li>";
+  }).join("");
+
+  return '<div class="pie" role="img" aria-label="Citations by period, total ' + total.toLocaleString("en-US") + ". " + label + '">' +
+      '<div class="pie-stage"><div class="pie-tilt">' + layers + "</div></div>" +
+      '<div class="pie-total"><b>' + scholar.citations + "</b><span>citations</span></div>" +
+    "</div>" +
+    '<div class="pie-badges"><span><b>' + scholar.h + "</b>h-index</span><span><b>" + scholar.i10 + "</b>i10-index</span></div>" +
+    '<ul class="pie-legend">' + legend + "</ul>" +
+    '<p class="pie-note">* 2026 to date. Undated: citations Scholar lists without a year.</p>';
+}
+
 function initLineup(people, cards, sound, reduced) {
   var keys = cards.map(function (c) { return c.getAttribute("data-person"); });
   var photos = {};
@@ -407,10 +457,11 @@ function initLineup(people, cards, sound, reduced) {
       "</div>" +
       '<div class="lu-figure"><div class="lu-photo"><img alt=""></div><div class="lu-beam"></div>' +
         '<div class="lu-status" aria-live="polite"></div></div>' +
-      '<div class="lu-right" aria-hidden="true">' +
-        '<div class="lu-panel"><div class="lu-ptitle">Sequencing</div><canvas class="lu-dna" width="300" height="90"></canvas></div>' +
-        '<div class="lu-panel"><div class="lu-ptitle">Signal</div><div class="lu-wave">' + waveBars + "</div></div>" +
-        '<div class="lu-panel lu-panel-hex"><div class="lu-ptitle">Data stream</div><pre class="lu-hex"></pre></div>' +
+      '<div class="lu-right">' +
+        '<div class="lu-panel lu-panel-pie" hidden><div class="lu-ptitle">Citations by period &middot; Google Scholar</div><div class="lu-pie"></div></div>' +
+        '<div class="lu-panel" aria-hidden="true"><div class="lu-ptitle">Sequencing</div><canvas class="lu-dna" width="300" height="90"></canvas></div>' +
+        '<div class="lu-panel" aria-hidden="true"><div class="lu-ptitle">Signal</div><div class="lu-wave">' + waveBars + "</div></div>" +
+        '<div class="lu-panel lu-panel-hex" aria-hidden="true"><div class="lu-ptitle">Data stream</div><pre class="lu-hex"></pre></div>' +
       "</div>" +
     "</div>" +
     '<div class="lu-controls">' +
@@ -622,6 +673,8 @@ function initLineup(people, cards, sound, reduced) {
       list.appendChild(btn);
     });
 
+    renderPie(p.scholar);
+
     var links = q(".lu-links");
     links.innerHTML = "";
     if (p.scholar) addLink(links, p.scholar.url, "Google Scholar ↗", true);
@@ -663,6 +716,31 @@ function initLineup(people, cards, sound, reduced) {
     setTimeout(function () {
       typeRows(nodes, function () { return my === run; }, sound);
     }, 450);
+  }
+
+  function renderPie(scholar) {
+    var panel = q(".lu-panel-pie");
+    var box = q(".lu-pie");
+    var has = !!(scholar && scholar.split);
+    panel.hidden = !has;
+    el.classList.toggle("has-pie", has);
+    box.innerHTML = "";
+    if (!has) return;
+    box.innerHTML = pieMarkup(scholar);
+    var pie = box.querySelector(".pie");
+    var items = box.querySelectorAll("[data-i]");
+    items.forEach(function (n) {
+      n.addEventListener("mouseenter", function () {
+        var i = n.getAttribute("data-i");
+        pie.classList.add("has-focus");
+        items.forEach(function (m) { m.classList.toggle("is-hot", m.getAttribute("data-i") === i); });
+      });
+      n.addEventListener("mouseleave", function () {
+        pie.classList.remove("has-focus");
+        items.forEach(function (m) { m.classList.remove("is-hot"); });
+      });
+    });
+    requestAnimationFrame(function () { requestAnimationFrame(function () { pie.classList.add("is-drawn"); }); });
   }
 
   function addLink(parent, href, text, external) {
