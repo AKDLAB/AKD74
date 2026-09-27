@@ -321,6 +321,65 @@ section.alt { background: var(--bg-alt); }
 
 .pub-list li:first-child { padding-top: 0; }
 
+ol.pub-list {
+  list-style: decimal;
+  padding-left: 2.2em;
+  margin: 0 0 48px;
+}
+
+ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
+
+.pub-title { font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+.pub-authors { color: var(--text); font-size: 0.88rem; }
+.pub-venue { color: var(--muted); font-size: 0.86rem; font-style: italic; }
+
+.if-badge {
+  float: right;
+  margin-left: 12px;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.cites {
+  font-style: normal;
+  margin-left: 10px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.group-subtitle .count { color: var(--muted); font-weight: 400; font-size: 0.95rem; }
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 12px;
+  text-align: center;
+}
+
+.stat-num { font-size: 1.6rem; font-weight: 700; color: var(--navy); }
+.stat-label { font-size: 0.82rem; color: var(--muted); }
+
+.pub-note { margin-bottom: 36px; }
+
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .if-badge { float: none; display: inline-block; margin: 0 0 6px; }
+}
+
 .pub-note {
   background: var(--accent-light);
   border-left: 4px solid var(--accent);
