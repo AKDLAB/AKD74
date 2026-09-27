@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Research | MMST Group | INST Mohali</title>
-<link rel="stylesheet" href="style.css?v=3a6a565">
+<link rel="stylesheet" href="style.css?v=d58a9e7">
 </head>
 <body>
 
@@ -28,18 +28,27 @@
   </div>
 </header>
 
-<section style="padding-bottom:20px;">
-  <div class="wrap">
-    <h1 class="section-title">Research</h1>
-    <p class="section-sub" style="max-width:800px;">
-      Our group works at the interface of materials science, sensing, and sustainability —
+<section class="rs-hero">
+  <canvas class="rs-lattice" aria-hidden="true"></canvas>
+  <div class="wrap rs-hero-inner">
+    <p class="rs-eyebrow"><span class="rs-dot"></span>MMST&middot;Research &mdash; system overview</p>
+    <h1 class="rs-title">Research</h1>
+    <p class="rs-lead">
+      Our group works at the interface of materials science, sensing, and sustainability &mdash;
       designing multifunctional nanomaterials that address real environmental and energy
       challenges.
     </p>
+    <div class="rs-actions">
+      <a class="rs-explore" href="#focus-areas">Explore focus areas &darr;</a>
+      <button class="ai-sound-toggle" type="button" aria-pressed="false" hidden>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="label">Sound: off</span>
+      </button>
+    </div>
   </div>
 </section>
 
-<section class="alt">
+<section class="alt" id="focus-areas">
   <div class="wrap">
     <div class="research-grid reveal">
       <div class="research-card tilt">
@@ -83,6 +92,8 @@
 
 <section id="biosensors">
   <div class="wrap">
+    <div class="fa-head">
+      <div class="fa-text">
     <p class="eyebrow">Focus area</p>
     <h2 class="section-title">Bio and Chemo Sensors</h2>
     <p class="section-sub lead">
@@ -93,8 +104,17 @@
       surface area, conductivity or luminescence <strong>amplify</strong> the signal. Targets range
       from clinical biomarkers to foodborne and waterborne pathogens and food toxins.
     </p>
+      </div>
+      <figure class="mol" data-mol="dpa">
+        <div class="mol-view"><canvas role="img" aria-label="3D model of Dipicolinic acid"></canvas><span class="mol-tag">3D model</span></div>
+        <figcaption><b>Dipicolinic acid</b> <span class="mol-formula">C<sub>7</sub>H<sub>5</sub>NO<sub>4</sub></span><br>Anthrax spore biomarker detected by our water-dispersible terbium MOF sensor.</figcaption>
+        <div class="mol-legend" aria-hidden="true"></div>
+      </figure>
+    </div>
 
     <h3 class="sub-h">How a nanomaterial biosensor turns binding into a signal</h3>
+    <div class="mech-band">
+    <div class="mech-wire" aria-hidden="true"></div>
     <ol class="mech-flow reveal">
       <li class="mech-step tilt">
         <span class="step-num">1</span>
@@ -129,6 +149,7 @@
         milk and water.</p>
       </li>
     </ol>
+    </div>
 
     <h3 class="sub-h">Our approaches</h3>
     <div class="approach-grid reveal">
@@ -207,6 +228,8 @@
 
 <section id="env-sensors" class="alt">
   <div class="wrap">
+    <div class="fa-head">
+      <div class="fa-text">
     <p class="eyebrow">Focus area</p>
     <h2 class="section-title">Sensors for Environmental Analytes</h2>
     <p class="section-sub lead">
@@ -217,8 +240,17 @@
       polyaniline, PEDOT:PSS and MXenes <strong>convert</strong> that uptake into an electrical or
       optical readout.
     </p>
+      </div>
+      <figure class="mol" data-mol="nh3">
+        <div class="mol-view"><canvas role="img" aria-label="3D model of Ammonia"></canvas><span class="mol-tag">3D model</span></div>
+        <figcaption><b>Ammonia</b> <span class="mol-formula">NH<sub>3</sub></span><br>Toxic gas sensed at room temperature by our ZIF-67/rGO and MOF&ndash;polyaniline chemiresistors.</figcaption>
+        <div class="mol-legend" aria-hidden="true"></div>
+      </figure>
+    </div>
 
     <h3 class="sub-h">From a trace pollutant to a readable signal</h3>
+    <div class="mech-band">
+    <div class="mech-wire" aria-hidden="true"></div>
     <ol class="mech-flow reveal">
       <li class="mech-step tilt">
         <span class="step-num">1</span>
@@ -251,6 +283,7 @@
         real samples.</p>
       </li>
     </ol>
+    </div>
 
     <h3 class="sub-h">Our approaches</h3>
     <div class="approach-grid reveal">
@@ -328,6 +361,8 @@
 
 <section id="energy">
   <div class="wrap">
+    <div class="fa-head">
+      <div class="fa-text">
     <p class="eyebrow">Focus area</p>
     <h2 class="section-title">Energy Applications of Nanomaterials</h2>
     <p class="section-sub lead">
@@ -338,8 +373,17 @@
       phosphide/carbon hybrids. We pair these electrodes with redox-additive electrolytes to raise
       energy density, and extend the same materials to batteries and solar cells.
     </p>
+      </div>
+      <figure class="mol" data-mol="mim">
+        <div class="mol-view"><canvas role="img" aria-label="3D model of 2-Methylimidazole"></canvas><span class="mol-tag">3D model</span></div>
+        <figcaption><b>2-Methylimidazole</b> <span class="mol-formula">C<sub>4</sub>H<sub>6</sub>N<sub>2</sub></span><br>The linker that builds ZIF-67 and ZIF-8, the frameworks behind our MOF-derived electrodes.</figcaption>
+        <div class="mol-legend" aria-hidden="true"></div>
+      </figure>
+    </div>
 
     <h3 class="sub-h">How a MOF-derived supercapacitor electrode stores charge</h3>
+    <div class="mech-band">
+    <div class="mech-wire" aria-hidden="true"></div>
     <ol class="mech-flow reveal">
       <li class="mech-step tilt">
         <span class="step-num">1</span>
@@ -371,6 +415,7 @@
         <p class="eq">E = &frac12; C V<sup>2</sup><br>P<sub>max</sub> = V<sup>2</sup> / 4R<sub>s</sub></p>
       </li>
     </ol>
+    </div>
 
     <h3 class="sub-h">Our approaches</h3>
     <div class="approach-grid reveal">
@@ -445,6 +490,8 @@
 
 <section id="recovery" class="alt">
   <div class="wrap">
+    <div class="fa-head">
+      <div class="fa-text">
     <p class="eyebrow">Focus area</p>
     <h2 class="section-title">Recovery from E-waste &amp; Low-grade Sources</h2>
     <p class="section-sub lead">
@@ -454,8 +501,17 @@
       combines <strong>hydrometallurgy</strong> (leaching followed by selective solvent extraction)
       with <strong>upcycling</strong> the recovered metals directly into nanomaterials and MOFs.
     </p>
+      </div>
+      <figure class="mol" data-mol="tmpo">
+        <div class="mol-view"><canvas role="img" aria-label="3D model of Trialkylphosphine oxide core"></canvas><span class="mol-tag">3D model</span></div>
+        <figcaption><b>Trialkylphosphine oxide core</b> <span class="mol-formula">R<sub>3</sub>P=O</span><br>The metal-binding group of Cyanex 923 extractants (alkyl chains shown as methyl groups).</figcaption>
+        <div class="mol-legend" aria-hidden="true"></div>
+      </figure>
+    </div>
 
     <h3 class="sub-h">From waste to a high-purity product</h3>
+    <div class="mech-band">
+    <div class="mech-wire" aria-hidden="true"></div>
     <ol class="mech-flow reveal">
       <li class="mech-step tilt">
         <span class="step-num">1</span>
@@ -485,6 +541,7 @@
         batteries, or zinc used directly as the metal source for MOF synthesis.</p>
       </li>
     </ol>
+    </div>
 
     <h3 class="sub-h">Our approaches</h3>
     <div class="approach-grid reveal">
@@ -560,6 +617,8 @@
 
 <section id="remediation">
   <div class="wrap">
+    <div class="fa-head">
+      <div class="fa-text">
     <p class="eyebrow">Focus area</p>
     <h2 class="section-title">Environmental Remediation &amp; Wastewater Treatment</h2>
     <p class="section-sub lead">
@@ -570,8 +629,17 @@
       or <strong>recover</strong> them, aiming for complete mineralization rather than moving the
       pollution from water into sludge.
     </p>
+      </div>
+      <figure class="mol" data-mol="nh2bdc">
+        <div class="mol-view"><canvas role="img" aria-label="3D model of 2-Aminoterephthalic acid"></canvas><span class="mol-tag">3D model</span></div>
+        <figcaption><b>2-Aminoterephthalic acid</b> <span class="mol-formula">C<sub>8</sub>H<sub>7</sub>NO<sub>4</sub></span><br>The linker in NH<sub>2</sub>-MIL-101(Fe) and UiO-66-NH<sub>2</sub>, our pollutant adsorbents and photocatalysts.</figcaption>
+        <div class="mol-legend" aria-hidden="true"></div>
+      </figure>
+    </div>
 
     <h3 class="sub-h">How a MOF photocatalyst cleans water</h3>
+    <div class="mech-band">
+    <div class="mech-wire" aria-hidden="true"></div>
     <ol class="mech-flow reveal">
       <li class="mech-step tilt">
         <span class="step-num">1</span>
@@ -602,6 +670,7 @@
         composites are pulled out with an external magnet and reused over repeated cycles.</p>
       </li>
     </ol>
+    </div>
 
     <h3 class="sub-h">Our approaches</h3>
     <div class="approach-grid reveal">
@@ -686,6 +755,6 @@
   </div>
 </footer>
 
-<script src="script.js?v=3a6a565"></script>
+<script src="script.js?v=d58a9e7"></script>
 </body>
 </html>
