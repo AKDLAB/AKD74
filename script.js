@@ -347,7 +347,7 @@ function narrationFor(p, id) {
       .replace(/\bDST\b/g, "D S T").replace(/WISE-SCOPE/g, "Wise Scope");
   }
   var eduWords = { "Graduation": "Graduated from", "M.Sc.": "Master of Science,", "M.Tech.": "Master of Technology,", "Ph.D.": "Doctorate," };
-  var parts = ["Subject " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
+  var parts = ["Identification number " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
   (p.education || []).forEach(function (e) {
     parts.push((eduWords[e[0]] || e[0] + ",") + " " + e[1] + ".");
   });
@@ -387,12 +387,12 @@ function initLineup(people, cards, sound, reduced) {
       '<div class="lu-floor"></div>' +
     "</div>" +
     '<div class="lu-top">' +
-      '<div class="lu-brand"><span class="lu-reticle"></span>MMST&middot;Corps &mdash; subject line-up</div>' +
+      '<div class="lu-brand"><span class="lu-reticle"></span>MMST&middot;Corps &mdash; member identification</div>' +
       '<div class="lu-assoc"><span class="lu-label">Associates</span><div class="lu-assoc-list"></div></div>' +
     "</div>" +
     '<div class="lu-stage">' +
       '<div class="lu-left">' +
-        '<div class="lu-subject">Subject: <b class="lu-id"></b></div>' +
+        '<div class="lu-subject">Identification No.: <b class="lu-id"></b></div>' +
         '<h2 class="lu-name" id="lu-name"></h2>' +
         '<dl class="lu-data"></dl>' +
         '<div class="lu-links"></div>' +
@@ -406,9 +406,9 @@ function initLineup(people, cards, sound, reduced) {
       "</div>" +
     "</div>" +
     '<div class="lu-controls">' +
-      '<button class="lu-btn lu-prev" type="button" aria-label="Previous subject">&#9664;</button>' +
+      '<button class="lu-btn lu-prev" type="button" aria-label="Previous member">&#9664;</button>' +
       '<span class="lu-count"></span>' +
-      '<button class="lu-btn lu-next" type="button" aria-label="Next subject">&#9654;</button>' +
+      '<button class="lu-btn lu-next" type="button" aria-label="Next member">&#9654;</button>' +
       '<button class="lu-btn lu-voice" type="button"></button>' +
       '<button class="lu-btn lu-close" type="button">Close &#10005;</button>' +
     "</div>" +
