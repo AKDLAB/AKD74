@@ -757,7 +757,7 @@ ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
 .ring-fill {
   stroke: var(--series-1);
   stroke-linecap: round;
-  stroke-dasharray: var(--val) var(--len);
+  stroke-dasharray: calc(var(--val) * 1px) calc(var(--len) * 1px);
   transition: stroke-dasharray 1.4s cubic-bezier(.2,.8,.2,1) 0.35s;
 }
 .ring-center, .donut-center {
@@ -787,8 +787,8 @@ ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
 .donut-seg {
   fill: none;
   stroke-width: 11;
-  stroke-dasharray: var(--val) var(--len);
-  stroke-dashoffset: var(--off);
+  stroke-dasharray: calc(var(--val) * 1px) calc(var(--len) * 1px);
+  stroke-dashoffset: calc(var(--off) * 1px);
   transition: stroke-dasharray 0.9s cubic-bezier(.2,.8,.2,1) calc(0.35s + var(--i) * 0.45s), opacity 0.2s, stroke-width 0.2s;
   cursor: pointer;
 }
@@ -815,10 +815,10 @@ ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
 .stats-row.anim-armed .col-chart .peak-label { opacity: 0; }
 .stats-row.anim-armed.in-view .col-chart .peak-label { opacity: 1; transition: opacity 0.4s 1.5s; }
 
-.stats-row.anim-armed .ring-fill { stroke-dasharray: 0 var(--len); }
-.stats-row.anim-armed.in-view .ring-fill { stroke-dasharray: var(--val) var(--len); }
-.stats-row.anim-armed .donut-seg { stroke-dasharray: 0 var(--len); }
-.stats-row.anim-armed.in-view .donut-seg { stroke-dasharray: var(--val) var(--len); }
+.stats-row.anim-armed .ring-fill { stroke-dasharray: 0px calc(var(--len) * 1px); }
+.stats-row.anim-armed.in-view .ring-fill { stroke-dasharray: calc(var(--val) * 1px) calc(var(--len) * 1px); }
+.stats-row.anim-armed .donut-seg { stroke-dasharray: 0px calc(var(--len) * 1px); }
+.stats-row.anim-armed.in-view .donut-seg { stroke-dasharray: calc(var(--val) * 1px) calc(var(--len) * 1px); }
 
 .pub-note { margin-bottom: 36px; }
 
@@ -1373,7 +1373,9 @@ html.lu-lock { overflow: hidden; }
   animation: pie-spin 26s linear infinite;
 }
 
-.pie:hover .pie-tilt { animation-play-state: paused; }
+@media (hover: hover) {
+  .pie:hover .pie-tilt { animation-play-state: paused; }
+}
 
 @keyframes pie-spin { to { transform: rotateX(52deg) rotateZ(360deg); } }
 
@@ -1382,12 +1384,12 @@ html.lu-lock { overflow: hidden; }
 .pie-seg {
   fill: none;
   stroke-width: 16;
-  stroke-dasharray: 0 var(--len);
-  stroke-dashoffset: var(--off);
+  stroke-dasharray: 0px calc(var(--len) * 1px);
+  stroke-dashoffset: calc(var(--off) * 1px);
   transition: stroke-dasharray 0.9s cubic-bezier(.2,.8,.2,1) calc(0.45s + var(--n) * 0.18s), opacity 0.2s;
 }
 
-.pie.is-drawn .pie-seg { stroke-dasharray: var(--val) var(--len); }
+.pie.is-drawn .pie-seg { stroke-dasharray: calc(var(--val) * 1px) calc(var(--len) * 1px); }
 .pie-top .pie-seg { filter: drop-shadow(0 0 3px rgba(127,224,255,0.55)); }
 .pie.has-focus .pie-seg { opacity: 0.25; }
 .pie.has-focus .pie-seg.is-hot { opacity: 1; }

@@ -475,6 +475,7 @@ function initLineup(people, cards, sound, reduced) {
   var raf = 0;
   var hexTimer = 0;
   var lockTimer = 0;
+  var pieWatch = null;
 
   q(".lu-close").addEventListener("click", close);
   q(".lu-prev").addEventListener("click", function () { step(-1); });
@@ -558,6 +559,7 @@ function initLineup(people, cards, sound, reduced) {
     clearTimeout(lockTimer);
     clearInterval(hexTimer);
     cancelAnimationFrame(raf);
+    if (pieWatch) pieWatch.disconnect();
     sound.hum(false);
     el.classList.remove("is-open", "is-scanning", "is-locked");
     el.hidden = true;
@@ -670,7 +672,17 @@ function initLineup(people, cards, sound, reduced) {
         items.forEach(function (m) { m.classList.remove("is-hot"); });
       });
     });
-    requestAnimationFrame(function () { requestAnimationFrame(function () { pie.classList.add("is-drawn"); }); });
+    if (pieWatch) pieWatch.disconnect();
+    if (!("IntersectionObserver" in window)) {
+      requestAnimationFrame(function () { requestAnimationFrame(function () { pie.classList.add("is-drawn"); }); });
+      return;
+    }
+    pieWatch = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      pieWatch.disconnect();
+      requestAnimationFrame(function () { pie.classList.add("is-drawn"); });
+    }, { threshold: 0.4 });
+    pieWatch.observe(pie);
   }
 
   function addLink(parent, href, text, external) {
