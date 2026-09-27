@@ -343,6 +343,9 @@ function dossierLines(p) {
   return rows;
 }
 
+function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+function easeOutBack(t) { var c = 1.4; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }
+
 var PIE_COLORS = ["#2a6389", "#3480ab", "#44a0cd", "#68c1e8", "#a6e8ff"];
 
 function shade(hex, f) {
@@ -476,6 +479,7 @@ function initLineup(people, cards, sound, reduced) {
   var hexTimer = 0;
   var lockTimer = 0;
   var pieWatch = null;
+  var pieRaf = 0;
 
   q(".lu-close").addEventListener("click", close);
   q(".lu-prev").addEventListener("click", function () { step(-1); });
@@ -559,7 +563,7 @@ function initLineup(people, cards, sound, reduced) {
     clearTimeout(lockTimer);
     clearInterval(hexTimer);
     cancelAnimationFrame(raf);
-    if (pieWatch) pieWatch.disconnect();
+    stopPie();
     sound.hum(false);
     el.classList.remove("is-open", "is-scanning", "is-locked");
     el.hidden = true;
@@ -672,17 +676,65 @@ function initLineup(people, cards, sound, reduced) {
         items.forEach(function (m) { m.classList.remove("is-hot"); });
       });
     });
-    if (pieWatch) pieWatch.disconnect();
-    if (!("IntersectionObserver" in window)) {
-      requestAnimationFrame(function () { requestAnimationFrame(function () { pie.classList.add("is-drawn"); }); });
-      return;
+    stopPie();
+    if (reduced) return;
+    var segs = [].map.call(pie.querySelectorAll(".pie-seg"), function (seg) {
+      return {
+        el: seg,
+        val: parseFloat(seg.style.getPropertyValue("--val")),
+        len: parseFloat(seg.style.getPropertyValue("--len")),
+        n: parseFloat(seg.style.getPropertyValue("--n"))
+      };
+    });
+    var stage = pie.querySelector(".pie-stage");
+    var tilt = pie.querySelector(".pie-tilt");
+    segs.forEach(function (s) { s.el.style.strokeDasharray = "0px " + s.len + "px"; });
+    stage.style.opacity = "0";
+    stage.style.transform = "scale(0.6)";
+
+    var paused = false;
+    if (window.matchMedia("(hover: hover)").matches) {
+      pie.addEventListener("mouseenter", function () { paused = true; });
+      pie.addEventListener("mouseleave", function () { paused = false; });
     }
+
+    function play() {
+      var t0 = performance.now();
+      var last = t0;
+      var angle = 0;
+      var grown = false;
+      (function frame(now) {
+        var e = now - t0;
+        if (!paused) angle = (angle + (now - last) * 360 / 26000) % 360;
+        last = now;
+        tilt.style.transform = "rotateX(52deg) rotateZ(" + angle.toFixed(2) + "deg)";
+        if (!grown) {
+          var p = Math.min(e / 700, 1);
+          stage.style.opacity = p.toFixed(3);
+          stage.style.transform = "scale(" + (0.6 + 0.4 * easeOutBack(p)).toFixed(4) + ")";
+          grown = p === 1;
+          segs.forEach(function (s) {
+            var d = Math.min(Math.max((e - 450 - s.n * 180) / 900, 0), 1);
+            if (d < 1) grown = false;
+            s.el.style.strokeDasharray = (s.val * easeOutCubic(d)).toFixed(2) + "px " + s.len + "px";
+          });
+        }
+        pieRaf = requestAnimationFrame(frame);
+      })(t0);
+    }
+
+    if (!("IntersectionObserver" in window)) return play();
     pieWatch = new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) return;
       pieWatch.disconnect();
-      requestAnimationFrame(function () { pie.classList.add("is-drawn"); });
+      play();
     }, { threshold: 0.4 });
     pieWatch.observe(pie);
+  }
+
+  function stopPie() {
+    if (pieWatch) pieWatch.disconnect();
+    cancelAnimationFrame(pieRaf);
   }
 
   function addLink(parent, href, text, external) {
