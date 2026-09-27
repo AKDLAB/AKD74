@@ -193,7 +193,7 @@ section.alt { background: var(--bg-alt); }
 /* Research grid */
 .research-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 24px;
 }
 
@@ -222,6 +222,147 @@ section.alt { background: var(--bg-alt); }
   margin: 0;
   color: var(--muted);
   font-size: 0.93rem;
+}
+
+.research-card .more {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* Focus area: environmental remediation */
+#remediation { scroll-margin-top: 70px; }
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.section-sub.lead { max-width: 820px; font-size: 1.02rem; color: var(--text); }
+
+.sub-h {
+  font-size: 1.15rem;
+  color: var(--navy);
+  margin: 44px 0 18px;
+}
+
+.mech-flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+
+.mech-step,
+.approach-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 20px 20px;
+  box-shadow: 0 1px 2px rgba(11,37,69,0.05), 0 6px 18px rgba(11,37,69,0.06);
+}
+
+.mech-step:hover,
+.approach-card:hover { box-shadow: 0 2px 4px rgba(11,37,69,0.06), 0 18px 36px rgba(11,37,69,0.14); }
+
+.mech-step:not(:last-child)::before {
+  content: "\2192";
+  position: absolute;
+  right: -22px;
+  top: 30px;
+  color: var(--accent);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transform: translateZ(30px);
+}
+
+.mech-step h4,
+.approach-card h4 {
+  margin: 10px 0 8px;
+  color: var(--navy);
+  font-size: 1.02rem;
+  transform: translateZ(20px);
+}
+
+.mech-step p,
+.approach-card p {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  transform: translateZ(12px);
+}
+
+.mech-step .eq {
+  background: var(--accent-light);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: "Cambria Math", "STIX Two Math", Cambria, Georgia, serif;
+  font-size: 0.92rem;
+  color: var(--navy);
+  line-height: 1.7;
+}
+
+.approach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.approach-card { border-top: 3px solid var(--accent); }
+
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chips li {
+  background: var(--accent-light);
+  color: var(--blue);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 960px) {
+  .mech-flow { grid-template-columns: 1fr 1fr; }
+  .mech-step:nth-child(2)::before { content: none; }
+}
+
+@media (max-width: 600px) {
+  .mech-flow { grid-template-columns: 1fr; gap: 30px; }
+  .mech-step:not(:last-child)::before {
+    content: "\2193";
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: -26px;
+    transform: translateX(-50%);
+  }
 }
 
 /* People */
