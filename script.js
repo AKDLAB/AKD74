@@ -344,14 +344,14 @@ function dossierLines(p) {
 function narrationFor(p, id) {
   function spoken(s) {
     return s.replace(/\bMMST\b/g, "M M S T").replace(/\bINST\b/g, "I N S T")
-      .replace(/\bDST\b/g, "D S T").replace(/WISE-SCOPE/g, "Wise Scope");
+      .replace(/\bDST\b/g, "D S T").replace(/\bMOF(s?)\b/g, "M O F$1").replace(/WISE-SCOPE/g, "Wise Scope");
   }
   var eduWords = { "Graduation": "Graduated from", "M.Sc.": "Master of Science,", "M.Tech.": "Master of Technology,", "Ph.D.": "Doctorate," };
   var parts = ["Identification number " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
   (p.education || []).forEach(function (e) {
     parts.push((eduWords[e[0]] || e[0] + ",") + " " + e[1] + ".");
   });
-  if (p.research) parts.push("Research focus: " + p.research + ".");
+  if (p.research) parts.push("Research focus: " + spoken(p.research) + ".");
   if (p.scholar) parts.push("Google Scholar record: " + p.scholar.citations.replace(/,/g, "") + " citations, h-index " + p.scholar.h + ".");
   return parts.join(" ");
 }
