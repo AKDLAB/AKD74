@@ -201,27 +201,35 @@ section.alt { background: var(--bg-alt); }
   background: #fff;
   border: 1px solid var(--border);
   border-top: 3px solid var(--accent);
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 26px 22px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(11,37,69,0.05), 0 6px 18px rgba(11,37,69,0.06);
 }
+
+.research-card:hover { box-shadow: 0 2px 4px rgba(11,37,69,0.06), 0 18px 36px rgba(11,37,69,0.14); }
 
 .research-card .icon {
   font-size: 1.8rem;
   margin-bottom: 12px;
-  display: block;
+  display: inline-block;
+  transform: translateZ(34px);
+  transition: transform 0.8s cubic-bezier(.3,.9,.3,1);
 }
+
+.research-card:hover .icon { transform: translateZ(34px) rotateY(360deg); }
 
 .research-card h3 {
   margin: 0 0 10px;
   color: var(--navy);
   font-size: 1.05rem;
+  transform: translateZ(22px);
 }
 
 .research-card p {
   margin: 0;
   color: var(--muted);
   font-size: 0.93rem;
+  transform: translateZ(12px);
 }
 
 .research-card .more {
@@ -229,6 +237,7 @@ section.alt { background: var(--bg-alt); }
   margin-top: 12px;
   font-size: 0.88rem;
   font-weight: 600;
+  transform: translateZ(18px);
 }
 
 /* Focus area: environmental remediation */
@@ -663,8 +672,8 @@ ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
   .stat-num { font-size: 1.6rem; }
 }
 
-/* Shared 3D: cards tilt toward the pointer and flip up when scrolled into view */
-.reveal { perspective: 1100px; }
+/* Shared 3D: cards tilt toward the pointer and flip up when scrolled into view.
+   Perspective lives on each card so lifted content stays centred on that card. */
 
 .tilt {
   --rx: 0deg;
@@ -674,7 +683,7 @@ ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
   --n: 0;
   position: relative;
   transform-style: preserve-3d;
-  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
   transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
 }
 
@@ -694,12 +703,12 @@ ol.pub-list li::marker { color: var(--muted); font-size: 0.85rem; }
 
 .reveal.anim-armed .tilt {
   opacity: 0;
-  transform: rotateX(-65deg) translateY(40px);
+  transform: perspective(1000px) rotateX(-65deg) translateY(40px);
   transform-origin: 50% 100%;
 }
 .reveal.anim-armed .tilt.in-view {
   opacity: 1;
-  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
   transition: transform 0.9s cubic-bezier(.2,.9,.25,1.15) calc(var(--n) * 0.12s),
               opacity 0.6s ease calc(var(--n) * 0.12s),
               box-shadow 0.25s ease-out;
