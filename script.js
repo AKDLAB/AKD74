@@ -388,7 +388,10 @@ function initLineup(people, cards, sound, reduced) {
     "</div>" +
     '<div class="lu-top">' +
       '<div class="lu-brand"><span class="lu-reticle"></span>MMST&middot;Corps &mdash; member identification</div>' +
-      '<div class="lu-assoc"><span class="lu-label">Associates</span><div class="lu-assoc-list"></div></div>' +
+      '<div class="lu-top-right">' +
+        '<label class="lu-voice-pick" hidden><span class="lu-label">Voice</span><select class="lu-select"></select></label>' +
+        '<div class="lu-assoc"><span class="lu-label">Associates</span><div class="lu-assoc-list"></div></div>' +
+      "</div>" +
     "</div>" +
     '<div class="lu-stage">' +
       '<div class="lu-left">' +
@@ -420,6 +423,8 @@ function initLineup(people, cards, sound, reduced) {
   var dl = q(".lu-data");
   var status = q(".lu-status");
   var voiceBtn = q(".lu-voice");
+  var voicePick = q(".lu-voice-pick");
+  var select = q(".lu-select");
   var startBtn = q(".lu-start");
   var canvas = q(".lu-dna");
   var g2 = canvas.getContext("2d");
@@ -438,6 +443,15 @@ function initLineup(people, cards, sound, reduced) {
   voiceBtn.addEventListener("click", function () { sound.toggle(); });
   sound.onChange(updateVoice);
   updateVoice();
+  sound.onVoices(fillVoices);
+  fillVoices();
+  select.addEventListener("change", function () {
+    sound.setVoice(select.value);
+    if (current >= 0 && startBtn.hidden && isOpen()) {
+      var k = keys[current];
+      sound.speak(narrationFor(people[k], ids[k]));
+    }
+  });
   startBtn.addEventListener("click", function () {
     startBtn.hidden = true;
     sound.unlock();
@@ -447,6 +461,7 @@ function initLineup(people, cards, sound, reduced) {
 
   el.addEventListener("keydown", function (e) {
     if (e.key === "Escape") { e.preventDefault(); close(); }
+    else if (e.target === select) return;
     else if (e.key === "ArrowRight") step(1);
     else if (e.key === "ArrowLeft") step(-1);
     else if (e.key === "Tab") trapFocus(e);
@@ -463,8 +478,43 @@ function initLineup(people, cards, sound, reduced) {
     else if (isOpen() && startBtn.hidden) sound.hum(true);
   }
 
+  function fillVoices() {
+    var vs = sound.voices();
+    voicePick.hidden = !vs.length;
+    if (!vs.length) return;
+    var names = { "en-GB": "English (UK)", "en-US": "English (US)", "en-IN": "English (India)", "en-AU": "English (Australia)", "en-IE": "English (Ireland)", "en-ZA": "English (South Africa)" };
+    var order = ["en-GB", "en-US", "en-IN", "en-AU"];
+    var groups = {};
+    vs.forEach(function (v) {
+      var lang = v.lang.replace("_", "-");
+      (groups[lang] = groups[lang] || []).push(v);
+    });
+    var langs = Object.keys(groups).sort(function (a, b) {
+      var ia = order.indexOf(a), ib = order.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+    });
+    select.innerHTML = "";
+    var auto = document.createElement("option");
+    auto.value = "";
+    auto.textContent = "Auto (" + (sound.activeVoice() && !sound.chosenVoice() ? sound.activeVoice() : "recommended") + ")";
+    select.appendChild(auto);
+    langs.forEach(function (lang) {
+      var og = document.createElement("optgroup");
+      og.label = names[lang] || "English (" + lang + ")";
+      groups[lang].sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (v) {
+        var o = document.createElement("option");
+        o.value = v.name;
+        o.textContent = v.name.replace(/\s*\(.*\)$/, "");
+        og.appendChild(o);
+      });
+      select.appendChild(og);
+    });
+    select.value = sound.chosenVoice();
+    if (select.value !== sound.chosenVoice()) select.value = "";
+  }
+
   function trapFocus(e) {
-    var f = [].slice.call(el.querySelectorAll("a[href], button:not([hidden])")).filter(function (n) { return n.offsetParent !== null; });
+    var f = [].slice.call(el.querySelectorAll("a[href], button:not([hidden]), select")).filter(function (n) { return n.offsetParent !== null; });
     if (!f.length) return;
     if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
@@ -669,16 +719,36 @@ function createAiSound() {
   try { on = localStorage.getItem("mmst-ai-sound") !== "off"; } catch (e) {}
 
   var synth = window.speechSynthesis;
-  function pickVoice() {
-    if (!synth) return;
+  var chosen = "";
+  var voiceListeners = [];
+  try { chosen = localStorage.getItem("mmst-ai-voice") || ""; } catch (e) {}
+
+  function englishVoices() {
+    if (!synth) return [];
     var novelty = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Grandma|Grandpa|Junior|Ralph|Fred|Kathy)\b/;
-    var vs = synth.getVoices().filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
+    return synth.getVoices().filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
+  }
+
+  function pickVoice() {
+    var vs = englishVoices();
+    voice = chosen ? vs.filter(function (v) { return v.name === chosen; })[0] || null : null;
     var prefer = ["Google UK English Male", "Daniel", "Microsoft Ryan", "Microsoft Guy", "Google US English", "Alex"];
     for (var i = 0; i < prefer.length && !voice; i++) {
       voice = vs.filter(function (v) { return v.name.indexOf(prefer[i]) === 0; })[0] || null;
     }
     if (!voice) voice = vs.filter(function (v) { return /en-GB/i.test(v.lang); })[0] || vs[0] || null;
+    voiceListeners.forEach(function (fn) { fn(); });
   }
+
+  function setVoice(name) {
+    chosen = name;
+    try {
+      if (name) localStorage.setItem("mmst-ai-voice", name);
+      else localStorage.removeItem("mmst-ai-voice");
+    } catch (e) {}
+    pickVoice();
+  }
+
   if (synth) {
     pickVoice();
     synth.addEventListener && synth.addEventListener("voiceschanged", pickVoice);
@@ -853,6 +923,10 @@ function createAiSound() {
   return {
     blip: blip, scan: scan, done: done, lock: lock, boom: boom, whoosh: whoosh, hum: hum,
     speak: speak, stopSpeaking: stopSpeaking, unlock: unlock, toggle: toggle,
+    voices: englishVoices, setVoice: setVoice,
+    chosenVoice: function () { return chosen; },
+    activeVoice: function () { return voice ? voice.name : ""; },
+    onVoices: function (fn) { voiceListeners.push(fn); },
     isOn: function () { return on; },
     onChange: function (fn) { listeners.push(fn); }
   };
