@@ -341,21 +341,6 @@ function dossierLines(p) {
   return rows;
 }
 
-function narrationFor(p, id) {
-  function spoken(s) {
-    return s.replace(/\bMMST\b/g, "M M S T").replace(/\bINST\b/g, "I N S T")
-      .replace(/\bDST\b/g, "D S T").replace(/\bMOF(s?)\b/g, "M O F$1").replace(/WISE-SCOPE/g, "Wise Scope");
-  }
-  var eduWords = { "Graduation": "Graduated from", "M.Sc.": "Master of Science,", "M.Tech.": "Master of Technology,", "Ph.D.": "Doctorate," };
-  var parts = ["Identification number " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
-  (p.education || []).forEach(function (e) {
-    parts.push((eduWords[e[0]] || e[0] + ",") + " " + e[1] + ".");
-  });
-  if (p.research) parts.push("Research focus: " + spoken(p.research) + ".");
-  if (p.scholar) parts.push("Google Scholar record: " + p.scholar.citations.replace(/,/g, "") + " citations, h-index " + p.scholar.h + ".");
-  return parts.join(" ");
-}
-
 var PIE_COLORS = ["#2a6389", "#3480ab", "#44a0cd", "#68c1e8", "#a6e8ff"];
 
 function shade(hex, f) {
@@ -444,7 +429,6 @@ function initLineup(people, cards, sound, reduced) {
     '<div class="lu-top">' +
       '<div class="lu-brand"><span class="lu-reticle"></span>MMST&middot;Corps &mdash; member identification</div>' +
       '<div class="lu-top-right">' +
-        '<label class="lu-voice-pick" hidden><span class="lu-label">Voice</span><select class="lu-select"></select></label>' +
         '<div class="lu-assoc"><span class="lu-label">Associates</span><div class="lu-assoc-list"></div></div>' +
       "</div>" +
     "</div>" +
@@ -468,7 +452,7 @@ function initLineup(people, cards, sound, reduced) {
       '<button class="lu-btn lu-prev" type="button" aria-label="Previous member">&#9664;</button>' +
       '<span class="lu-count"></span>' +
       '<button class="lu-btn lu-next" type="button" aria-label="Next member">&#9654;</button>' +
-      '<button class="lu-btn lu-voice" type="button"></button>' +
+      '<button class="lu-btn lu-sound" type="button"></button>' +
       '<button class="lu-btn lu-close" type="button">Close &#10005;</button>' +
     "</div>" +
     '<button class="lu-start" type="button" hidden>&#9654; Begin scan</button>';
@@ -478,9 +462,7 @@ function initLineup(people, cards, sound, reduced) {
   var img = q(".lu-photo img");
   var dl = q(".lu-data");
   var status = q(".lu-status");
-  var voiceBtn = q(".lu-voice");
-  var voicePick = q(".lu-voice-pick");
-  var select = q(".lu-select");
+  var soundBtn = q(".lu-sound");
   var startBtn = q(".lu-start");
   var canvas = q(".lu-dna");
   var g2 = canvas.getContext("2d");
@@ -491,23 +473,13 @@ function initLineup(people, cards, sound, reduced) {
   var raf = 0;
   var hexTimer = 0;
   var lockTimer = 0;
-  var speakTimer = 0;
 
   q(".lu-close").addEventListener("click", close);
   q(".lu-prev").addEventListener("click", function () { step(-1); });
   q(".lu-next").addEventListener("click", function () { step(1); });
-  voiceBtn.addEventListener("click", function () { sound.toggle(); });
-  sound.onChange(updateVoice);
-  updateVoice();
-  sound.onVoices(fillVoices);
-  fillVoices();
-  select.addEventListener("change", function () {
-    sound.setVoice(select.value);
-    if (current >= 0 && startBtn.hidden && isOpen()) {
-      var k = keys[current];
-      sound.speak(narrationFor(people[k], ids[k]));
-    }
-  });
+  soundBtn.addEventListener("click", function () { sound.toggle(); });
+  sound.onChange(updateSound);
+  updateSound();
   startBtn.addEventListener("click", function () {
     startBtn.hidden = true;
     sound.unlock();
@@ -517,7 +489,6 @@ function initLineup(people, cards, sound, reduced) {
 
   el.addEventListener("keydown", function (e) {
     if (e.key === "Escape") { e.preventDefault(); close(); }
-    else if (e.target === select) return;
     else if (e.key === "ArrowRight") step(1);
     else if (e.key === "ArrowLeft") step(-1);
     else if (e.key === "Tab") trapFocus(e);
@@ -526,51 +497,15 @@ function initLineup(people, cards, sound, reduced) {
   var initial = decodeURIComponent(location.hash.slice(1));
   if (keys.indexOf(initial) >= 0) openGated(initial);
 
-  function updateVoice() {
+  function updateSound() {
     var on = sound.isOn();
-    voiceBtn.setAttribute("aria-pressed", on ? "true" : "false");
-    voiceBtn.textContent = on ? "Sound & voice: on" : "Sound & voice: off";
-    if (!on) sound.stopSpeaking();
-    else if (isOpen() && startBtn.hidden) sound.hum(true);
-  }
-
-  function fillVoices() {
-    var vs = sound.voices();
-    voicePick.hidden = !vs.length;
-    if (!vs.length) return;
-    var names = { "en-GB": "English (UK)", "en-US": "English (US)", "en-IN": "English (India)", "en-AU": "English (Australia)", "en-IE": "English (Ireland)", "en-ZA": "English (South Africa)" };
-    var order = ["en-GB", "en-US", "en-IN", "en-AU"];
-    var groups = {};
-    vs.forEach(function (v) {
-      var lang = v.lang.replace("_", "-");
-      (groups[lang] = groups[lang] || []).push(v);
-    });
-    var langs = Object.keys(groups).sort(function (a, b) {
-      var ia = order.indexOf(a), ib = order.indexOf(b);
-      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
-    });
-    select.innerHTML = "";
-    var auto = document.createElement("option");
-    auto.value = "";
-    auto.textContent = "Auto (" + (sound.activeVoice() && !sound.chosenVoice() ? sound.activeVoice() : "recommended") + ")";
-    select.appendChild(auto);
-    langs.forEach(function (lang) {
-      var og = document.createElement("optgroup");
-      og.label = names[lang] || "English (" + lang + ")";
-      groups[lang].sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (v) {
-        var o = document.createElement("option");
-        o.value = v.name;
-        o.textContent = v.name.replace(/\s*\(.*\)$/, "");
-        og.appendChild(o);
-      });
-      select.appendChild(og);
-    });
-    select.value = sound.chosenVoice();
-    if (select.value !== sound.chosenVoice()) select.value = "";
+    soundBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    soundBtn.textContent = on ? "Sound: on" : "Sound: off";
+    if (on && isOpen() && startBtn.hidden) sound.hum(true);
   }
 
   function trapFocus(e) {
-    var f = [].slice.call(el.querySelectorAll("a[href], button:not([hidden]), select")).filter(function (n) { return n.offsetParent !== null; });
+    var f = [].slice.call(el.querySelectorAll("a[href], button:not([hidden])")).filter(function (n) { return n.offsetParent !== null; });
     if (!f.length) return;
     if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
@@ -619,10 +554,8 @@ function initLineup(people, cards, sound, reduced) {
   function close() {
     run++;
     clearTimeout(lockTimer);
-    clearTimeout(speakTimer);
     clearInterval(hexTimer);
     cancelAnimationFrame(raf);
-    sound.stopSpeaking();
     sound.hum(false);
     el.classList.remove("is-open", "is-scanning", "is-locked");
     el.hidden = true;
@@ -647,8 +580,6 @@ function initLineup(people, cards, sound, reduced) {
     var p = people[key];
     var my = ++run;
     clearTimeout(lockTimer);
-    clearTimeout(speakTimer);
-    sound.stopSpeaking();
 
     q(".lu-id").textContent = ids[key];
     q(".lu-name").textContent = p.name;
@@ -707,9 +638,6 @@ function initLineup(people, cards, sound, reduced) {
       status.textContent = "Identity confirmed";
       sound.lock();
     }, lockAfter);
-    speakTimer = setTimeout(function () {
-      if (my === run) sound.speak(narrationFor(p, ids[key]));
-    }, reduced ? 200 : 700);
 
     if (reduced) return;
     nodes.forEach(function (n) { n.row.hidden = true; n.v.textContent = ""; });
@@ -799,45 +727,8 @@ function createAiSound() {
   var humNodes = null;
   var lastBlip = 0;
   var listeners = [];
-  var voice = null;
   var on = true;
   try { on = localStorage.getItem("mmst-ai-sound") !== "off"; } catch (e) {}
-
-  var synth = window.speechSynthesis;
-  var chosen = "";
-  var voiceListeners = [];
-  try { chosen = localStorage.getItem("mmst-ai-voice") || ""; } catch (e) {}
-
-  function englishVoices() {
-    if (!synth) return [];
-    var novelty = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Grandma|Grandpa|Junior|Ralph|Fred|Kathy)\b/;
-    return synth.getVoices().filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
-  }
-
-  function pickVoice() {
-    var vs = englishVoices();
-    voice = chosen ? vs.filter(function (v) { return v.name === chosen; })[0] || null : null;
-    var prefer = ["Google UK English Male", "Daniel", "Microsoft Ryan", "Microsoft Guy", "Google US English", "Alex"];
-    for (var i = 0; i < prefer.length && !voice; i++) {
-      voice = vs.filter(function (v) { return v.name.indexOf(prefer[i]) === 0; })[0] || null;
-    }
-    if (!voice) voice = vs.filter(function (v) { return /en-GB/i.test(v.lang); })[0] || vs[0] || null;
-    voiceListeners.forEach(function (fn) { fn(); });
-  }
-
-  function setVoice(name) {
-    chosen = name;
-    try {
-      if (name) localStorage.setItem("mmst-ai-voice", name);
-      else localStorage.removeItem("mmst-ai-voice");
-    } catch (e) {}
-    pickVoice();
-  }
-
-  if (synth) {
-    pickVoice();
-    synth.addEventListener && synth.addEventListener("voiceschanged", pickVoice);
-  }
 
   function running() { return ctx && ctx.state === "running"; }
 
@@ -873,7 +764,7 @@ function createAiSound() {
     } else {
       on = !on;
       if (on) ensure();
-      else { stopSpeaking(); hum(false); }
+      else hum(false);
     }
     try { localStorage.setItem("mmst-ai-sound", on ? "on" : "off"); } catch (e) {}
     notify();
@@ -992,26 +883,9 @@ function createAiSound() {
     humNodes = { o1: o1, o2: o2, g: g };
   }
 
-  function speak(text) {
-    if (!on || !synth) return;
-    synth.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    if (voice) u.voice = voice;
-    u.lang = voice ? voice.lang : "en-GB";
-    u.rate = 1.1;
-    u.pitch = 0.85;
-    synth.speak(u);
-  }
-
-  function stopSpeaking() { if (synth) synth.cancel(); }
-
   return {
     blip: blip, scan: scan, done: done, lock: lock, boom: boom, whoosh: whoosh, hum: hum,
-    speak: speak, stopSpeaking: stopSpeaking, unlock: unlock, toggle: toggle,
-    voices: englishVoices, setVoice: setVoice,
-    chosenVoice: function () { return chosen; },
-    activeVoice: function () { return voice ? voice.name : ""; },
-    onVoices: function (fn) { voiceListeners.push(fn); },
+    unlock: unlock, toggle: toggle,
     isOn: function () { return on; },
     onChange: function (fn) { listeners.push(fn); }
   };

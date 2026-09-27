@@ -1075,25 +1075,6 @@ html.lu-lock { overflow: hidden; }
 .lu-assoc { display: flex; align-items: center; gap: 10px; }
 
 .lu-top-right { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
-.lu-voice-pick { display: flex; align-items: center; gap: 8px; }
-.lu-voice-pick[hidden] { display: none; }
-
-.lu-select {
-  max-width: 230px;
-  padding: 6px 30px 6px 12px;
-  border: 1px solid rgba(127,224,255,0.45);
-  border-radius: 999px;
-  background: rgba(5,14,26,0.85) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237fe0ff' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 12px center;
-  color: #cfeaff;
-  font: inherit;
-  font-size: 0.75rem;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-.lu-select:hover, .lu-select:focus-visible { box-shadow: 0 0 0 2px rgba(127,224,255,0.45); outline: none; }
-.lu-select option, .lu-select optgroup { background: #0b1b2c; color: #e8f5ff; }
 
 .lu-label {
   font-size: 0.64rem;
@@ -1340,7 +1321,7 @@ html.lu-lock { overflow: hidden; }
   outline: none;
 }
 
-.lu-voice[aria-pressed="false"] { opacity: 0.6; }
+.lu-sound[aria-pressed="false"] { opacity: 0.6; }
 .lu-count { min-width: 3.5em; text-align: center; font-size: 0.75rem; color: #9fc3dc; }
 
 .lu-start {
@@ -1471,8 +1452,8 @@ html.lu-lock { overflow: hidden; }
 }
 
 @media (max-width: 480px) {
-  .lu-voice { font-size: 0; padding: 6px 10px; }
-  .lu-voice::before { content: "\266A"; font-size: 0.85rem; }
+  .lu-sound { font-size: 0; padding: 6px 10px; }
+  .lu-sound::before { content: "\266A"; font-size: 0.85rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
