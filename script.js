@@ -347,7 +347,7 @@ function narrationFor(p, id) {
       .replace(/\bDST\b/g, "D S T").replace(/\bMOF(s?)\b/g, "M O F$1").replace(/WISE-SCOPE/g, "Wise Scope");
   }
   var eduWords = { "Graduation": "Graduated from", "M.Sc.": "Master of Science,", "M.Tech.": "Master of Technology,", "Ph.D.": "Doctorate," };
-  var parts = ["Namaste.", "Identification number " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
+  var parts = ["Identification number " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
   (p.education || []).forEach(function (e) {
     parts.push((eduWords[e[0]] || e[0] + ",") + " " + e[1] + ".");
   });
@@ -456,8 +456,7 @@ function initLineup(people, cards, sound, reduced) {
         '<div class="lu-links"></div>' +
       "</div>" +
       '<div class="lu-figure"><div class="lu-photo"><img alt=""></div><div class="lu-beam"></div>' +
-        '<div class="lu-status" aria-live="polite"></div>' +
-        '<div class="lu-namaste" aria-hidden="true"><span class="lu-hands">&#128591;</span>Namaste</div></div>' +
+        '<div class="lu-status" aria-live="polite"></div></div>' +
       '<div class="lu-right">' +
         '<div class="lu-panel lu-panel-pie" hidden><div class="lu-ptitle">Citations by period &middot; Google Scholar</div><div class="lu-pie"></div></div>' +
         '<div class="lu-panel" aria-hidden="true"><div class="lu-ptitle">Sequencing</div><canvas class="lu-dna" width="300" height="90"></canvas></div>' +
@@ -493,7 +492,6 @@ function initLineup(people, cards, sound, reduced) {
   var hexTimer = 0;
   var lockTimer = 0;
   var speakTimer = 0;
-  var greetTimer = 0;
 
   q(".lu-close").addEventListener("click", close);
   q(".lu-prev").addEventListener("click", function () { step(-1); });
@@ -622,12 +620,11 @@ function initLineup(people, cards, sound, reduced) {
     run++;
     clearTimeout(lockTimer);
     clearTimeout(speakTimer);
-    clearTimeout(greetTimer);
     clearInterval(hexTimer);
     cancelAnimationFrame(raf);
     sound.stopSpeaking();
     sound.hum(false);
-    el.classList.remove("is-open", "is-scanning", "is-locked", "is-greeting");
+    el.classList.remove("is-open", "is-scanning", "is-locked");
     el.hidden = true;
     startBtn.hidden = true;
     document.documentElement.classList.remove("lu-lock");
@@ -651,7 +648,6 @@ function initLineup(people, cards, sound, reduced) {
     var my = ++run;
     clearTimeout(lockTimer);
     clearTimeout(speakTimer);
-    clearTimeout(greetTimer);
     sound.stopSpeaking();
 
     q(".lu-id").textContent = ids[key];
@@ -698,14 +694,9 @@ function initLineup(people, cards, sound, reduced) {
       return { row: row, v: dd, text: r[1] };
     });
 
-    el.classList.remove("is-scanning", "is-locked", "is-greeting");
+    el.classList.remove("is-scanning", "is-locked");
     void el.offsetWidth;
     el.classList.add("is-scanning");
-    greetTimer = setTimeout(function () {
-      if (my !== run) return;
-      el.classList.add("is-greeting");
-      sound.bell();
-    }, reduced ? 0 : 650);
     sound.whoosh();
     sound.scan();
 
@@ -937,12 +928,6 @@ function createAiSound() {
     tone(1568, null, 0.16, "sine", 0.04, 0.16);
   }
 
-  function bell() {
-    tone(528, null, 1.6, "sine", 0.05);
-    tone(792, null, 1.2, "sine", 0.022, 0.02);
-    tone(1056, null, 0.8, "sine", 0.012, 0.04);
-  }
-
   function boom() {
     tone(120, 34, 0.9, "sine", 0.35);
     tone(60, 30, 1.1, "triangle", 0.12, 0.02);
@@ -1021,7 +1006,7 @@ function createAiSound() {
   function stopSpeaking() { if (synth) synth.cancel(); }
 
   return {
-    blip: blip, scan: scan, done: done, lock: lock, boom: boom, whoosh: whoosh, hum: hum, bell: bell,
+    blip: blip, scan: scan, done: done, lock: lock, boom: boom, whoosh: whoosh, hum: hum,
     speak: speak, stopSpeaking: stopSpeaking, unlock: unlock, toggle: toggle,
     voices: englishVoices, setVoice: setVoice,
     chosenVoice: function () { return chosen; },
