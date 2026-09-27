@@ -913,7 +913,7 @@ function createAiSound() {
     var u = new SpeechSynthesisUtterance(text);
     if (voice) u.voice = voice;
     u.lang = voice ? voice.lang : "en-GB";
-    u.rate = 0.98;
+    u.rate = 1.1;
     u.pitch = 0.85;
     synth.speak(u);
   }
