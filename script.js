@@ -143,53 +143,68 @@ function profileLines(p) {
 function initAiProfiles(people, reduced) {
   var canHover = window.matchMedia("(hover: hover)").matches;
   var sound = createAiSound();
+  var cards = [].slice.call(document.querySelectorAll("[data-person]")).filter(function (c) {
+    return people[c.getAttribute("data-person")];
+  });
+  var lineup = initLineup(people, cards, sound, reduced);
   var panel = document.createElement("div");
   panel.className = "ai-panel";
   panel.innerHTML =
     '<div class="ai-head"><span class="ai-dot"></span>MMST&middot;AI profile</div>' +
-    '<button class="ai-close" type="button" aria-label="Close profile">&times;</button>' +
-    '<div class="ai-body"></div>';
+    '<div class="ai-body"></div>' +
+    '<button class="ai-open" type="button">Open full scan &#9656;</button>';
   var body = panel.querySelector(".ai-body");
   var active = null;
   var hideTimer = null;
   var runId = 0;
 
-  document.querySelectorAll("[data-person]").forEach(function (card) {
-    var p = people[card.getAttribute("data-person")];
-    if (!p) return;
+  cards.forEach(function (card) {
+    var key = card.getAttribute("data-person");
+    var p = people[key];
     var sr = document.createElement("span");
     sr.className = "sr-only";
     sr.textContent = "AI profile. " + profileLines(p).filter(function (l) { return l.k; })
-      .map(function (l) { return l.k + ": " + l.v; }).join(". ");
+      .map(function (l) { return l.k + ": " + l.v; }).join(". ") + ". Press Enter for the full scan.";
     card.appendChild(sr);
+    card.setAttribute("role", "button");
 
+    card.addEventListener("click", function () { launch(card); });
+    card.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        launch(card);
+      }
+    });
     if (canHover) {
       card.addEventListener("mouseenter", function () { open(card); });
       card.addEventListener("mouseleave", scheduleHide);
-    } else {
-      card.addEventListener("click", function () { active === card ? hide() : open(card); });
+      card.addEventListener("focus", function () {
+        if (card.getAttribute("data-skip-focus")) return card.removeAttribute("data-skip-focus");
+        open(card);
+      });
+      card.addEventListener("blur", function (e) {
+        if (!panel.contains(e.relatedTarget)) scheduleHide();
+      });
     }
-    card.addEventListener("focus", function () { open(card); });
-    card.addEventListener("blur", function (e) {
-      if (!panel.contains(e.relatedTarget)) scheduleHide();
-    });
   });
 
+  panel.querySelector(".ai-open").addEventListener("click", function () { if (active) launch(active); });
   panel.addEventListener("mouseenter", cancelHide);
-  panel.addEventListener("mouseleave", function () { if (canHover) scheduleHide(); });
+  panel.addEventListener("mouseleave", scheduleHide);
   panel.addEventListener("focusout", function (e) {
     if (!panel.contains(e.relatedTarget) && e.relatedTarget !== active) scheduleHide();
   });
-  panel.querySelector(".ai-close").addEventListener("click", hide);
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && active) hide(); });
-  document.addEventListener("click", function (e) {
-    if (!canHover && active && !panel.contains(e.target) && !active.contains(e.target)) hide();
-  });
   window.addEventListener("resize", function () { if (active) position(active); });
+
+  function launch(card) {
+    hide();
+    lineup.open(card.getAttribute("data-person"), card);
+  }
 
   function open(card) {
     cancelHide();
-    if (active === card) return;
+    if (active === card || lineup.isOpen()) return;
     if (active) active.classList.remove("is-active", "is-scanning");
     active = card;
     card.classList.add("is-active");
@@ -199,7 +214,6 @@ function initAiProfiles(people, reduced) {
       card.classList.add("is-scanning");
     }
     card.after(panel);
-    panel.classList.toggle("is-sheet", !canHover);
     render(people[card.getAttribute("data-person")], card);
     requestAnimationFrame(function () { panel.classList.add("is-open"); });
     sound.scan();
@@ -222,10 +236,9 @@ function initAiProfiles(people, reduced) {
 
   function render(p, card) {
     var my = ++runId;
-    var lines = profileLines(p);
     body.style.minHeight = "";
     body.innerHTML = "";
-    var nodes = lines.map(function (l) {
+    var nodes = profileLines(p).map(function (l) {
       var row = document.createElement("div");
       row.className = "ai-line";
       if (l.k) {
@@ -255,9 +268,6 @@ function initAiProfiles(people, reduced) {
     status.className = "ai-status";
     status.textContent = "› analyzing profile";
     body.insertBefore(status, body.firstChild);
-    var caret = document.createElement("span");
-    caret.className = "ai-caret";
-
     var dots = 0;
     var dotTimer = setInterval(function () {
       if (my !== runId) return clearInterval(dotTimer);
@@ -268,36 +278,11 @@ function initAiProfiles(people, reduced) {
       clearInterval(dotTimer);
       if (my !== runId) return;
       status.remove();
-      typeLine(0);
+      typeRows(nodes, function () { return my === runId; }, sound, function () { sound.done(); });
     }, 480);
-
-    function typeLine(i) {
-      if (my !== runId) return;
-      if (i >= nodes.length) {
-        caret.remove();
-        sound.done();
-        return;
-      }
-      var n = nodes[i];
-      n.row.hidden = false;
-      n.row.appendChild(caret);
-      var pos = 0;
-      (function tick() {
-        if (my !== runId) return;
-        pos = Math.min(pos + 3, n.text.length);
-        n.v.textContent = n.text.slice(0, pos);
-        if (n.text.charAt(pos - 1) !== " ") sound.blip();
-        if (pos < n.text.length) setTimeout(tick, 16);
-        else setTimeout(function () { typeLine(i + 1); }, 70);
-      })();
-    }
   }
 
   function position(card) {
-    if (panel.classList.contains("is-sheet")) {
-      panel.style.left = panel.style.top = "";
-      return;
-    }
     var r = card.getBoundingClientRect();
     var w = panel.offsetWidth;
     var h = panel.offsetHeight;
@@ -320,12 +305,384 @@ function initAiProfiles(people, reduced) {
   }
 }
 
+function typeRows(nodes, alive, sound, onDone) {
+  var caret = document.createElement("span");
+  caret.className = "ai-caret";
+  (function next(i) {
+    if (!alive()) return;
+    if (i >= nodes.length) {
+      caret.remove();
+      if (onDone) onDone();
+      return;
+    }
+    var n = nodes[i];
+    n.row.hidden = false;
+    n.v.after(caret);
+    var pos = 0;
+    (function tick() {
+      if (!alive()) return;
+      pos = Math.min(pos + 3, n.text.length);
+      n.v.textContent = n.text.slice(0, pos);
+      if (n.text.charAt(pos - 1) !== " ") sound.blip();
+      if (pos < n.text.length) setTimeout(tick, 16);
+      else setTimeout(function () { next(i + 1); }, 70);
+    })();
+  })(0);
+}
+
+function dossierLines(p) {
+  var rows = [["Designation", p.role]];
+  (p.education || []).forEach(function (e) { rows.push([e[0], e[1]]); });
+  if (p.research) rows.push(["Research", p.research]);
+  if (p.highlight) rows.push(["Highlight", p.highlight]);
+  if (p.scholar) {
+    rows.push(["Scholar record", p.scholar.citations + " citations · h-index " + p.scholar.h + " · i10-index " + p.scholar.i10]);
+  }
+  return rows;
+}
+
+function narrationFor(p, id) {
+  function spoken(s) {
+    return s.replace(/\bMMST\b/g, "M M S T").replace(/\bINST\b/g, "I N S T")
+      .replace(/\bDST\b/g, "D S T").replace(/WISE-SCOPE/g, "Wise Scope");
+  }
+  var eduWords = { "Graduation": "Graduated from", "M.Sc.": "Master of Science,", "M.Tech.": "Master of Technology,", "Ph.D.": "Doctorate," };
+  var parts = ["Subject " + id.replace(/-/g, " ").split("").join(" ") + ".", p.name + ".", spoken(p.role) + "."];
+  (p.education || []).forEach(function (e) {
+    parts.push((eduWords[e[0]] || e[0] + ",") + " " + e[1] + ".");
+  });
+  if (p.research) parts.push("Research focus: " + p.research + ".");
+  if (p.scholar) parts.push("Google Scholar record: " + p.scholar.citations.replace(/,/g, "") + " citations, h-index " + p.scholar.h + ".");
+  return parts.join(" ");
+}
+
+function initLineup(people, cards, sound, reduced) {
+  var keys = cards.map(function (c) { return c.getAttribute("data-person"); });
+  var photos = {};
+  var ids = {};
+  cards.forEach(function (c, i) {
+    var k = keys[i];
+    photos[k] = c.querySelector("img").getAttribute("src");
+    var m = (people[k].email || "").match(/\.([a-z]{2}\d+)@/i);
+    ids[k] = m ? m[1].toUpperCase() : (k === "akash-deep" ? "MMST-PI" : "MMST-" + String(i + 1).padStart(2, "0"));
+  });
+
+  var waveBars = "";
+  for (var b = 0; b < 26; b++) {
+    waveBars += '<span style="--d:' + (0.35 + Math.random() * 0.6).toFixed(2) + "s;--h:" + Math.round(30 + Math.random() * 70) + '%"></span>';
+  }
+
+  var el = document.createElement("div");
+  el.className = "lineup";
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-labelledby", "lu-name");
+  el.hidden = true;
+  el.innerHTML =
+    '<div class="lu-wall" aria-hidden="true">' +
+      '<div class="lu-bar" style="--y:16%"><i>7</i></div>' +
+      '<div class="lu-bar" style="--y:36%"><i>6</i></div>' +
+      '<div class="lu-bar" style="--y:56%"><i>5</i></div>' +
+      '<div class="lu-bar" style="--y:76%"><i>4</i></div>' +
+      '<div class="lu-floor"></div>' +
+    "</div>" +
+    '<div class="lu-top">' +
+      '<div class="lu-brand"><span class="lu-reticle"></span>MMST&middot;Corps &mdash; subject line-up</div>' +
+      '<div class="lu-assoc"><span class="lu-label">Associates</span><div class="lu-assoc-list"></div></div>' +
+    "</div>" +
+    '<div class="lu-stage">' +
+      '<div class="lu-left">' +
+        '<div class="lu-subject">Subject: <b class="lu-id"></b></div>' +
+        '<h2 class="lu-name" id="lu-name"></h2>' +
+        '<dl class="lu-data"></dl>' +
+        '<div class="lu-links"></div>' +
+      "</div>" +
+      '<div class="lu-figure"><div class="lu-photo"><img alt=""></div><div class="lu-beam"></div>' +
+        '<div class="lu-status" aria-live="polite"></div></div>' +
+      '<div class="lu-right" aria-hidden="true">' +
+        '<div class="lu-panel"><div class="lu-ptitle">Sequencing</div><canvas class="lu-dna" width="300" height="90"></canvas></div>' +
+        '<div class="lu-panel"><div class="lu-ptitle">Signal</div><div class="lu-wave">' + waveBars + "</div></div>" +
+        '<div class="lu-panel lu-panel-hex"><div class="lu-ptitle">Data stream</div><pre class="lu-hex"></pre></div>' +
+      "</div>" +
+    "</div>" +
+    '<div class="lu-controls">' +
+      '<button class="lu-btn lu-prev" type="button" aria-label="Previous subject">&#9664;</button>' +
+      '<span class="lu-count"></span>' +
+      '<button class="lu-btn lu-next" type="button" aria-label="Next subject">&#9654;</button>' +
+      '<button class="lu-btn lu-voice" type="button"></button>' +
+      '<button class="lu-btn lu-close" type="button">Close &#10005;</button>' +
+    "</div>" +
+    '<button class="lu-start" type="button" hidden>&#9654; Begin scan</button>';
+  document.body.appendChild(el);
+
+  var q = function (s) { return el.querySelector(s); };
+  var img = q(".lu-photo img");
+  var dl = q(".lu-data");
+  var status = q(".lu-status");
+  var voiceBtn = q(".lu-voice");
+  var startBtn = q(".lu-start");
+  var canvas = q(".lu-dna");
+  var g2 = canvas.getContext("2d");
+  var hexEl = q(".lu-hex");
+  var current = -1;
+  var run = 0;
+  var origin = null;
+  var raf = 0;
+  var hexTimer = 0;
+  var lockTimer = 0;
+  var speakTimer = 0;
+
+  q(".lu-close").addEventListener("click", close);
+  q(".lu-prev").addEventListener("click", function () { step(-1); });
+  q(".lu-next").addEventListener("click", function () { step(1); });
+  voiceBtn.addEventListener("click", function () { sound.toggle(); });
+  sound.onChange(updateVoice);
+  updateVoice();
+  startBtn.addEventListener("click", function () {
+    startBtn.hidden = true;
+    sound.unlock();
+    begin();
+    show(keys[current]);
+  });
+
+  el.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+    else if (e.key === "ArrowRight") step(1);
+    else if (e.key === "ArrowLeft") step(-1);
+    else if (e.key === "Tab") trapFocus(e);
+  });
+
+  var initial = decodeURIComponent(location.hash.slice(1));
+  if (keys.indexOf(initial) >= 0) openGated(initial);
+
+  function updateVoice() {
+    var on = sound.isOn();
+    voiceBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    voiceBtn.textContent = on ? "Sound & voice: on" : "Sound & voice: off";
+    if (!on) sound.stopSpeaking();
+    else if (isOpen() && startBtn.hidden) sound.hum(true);
+  }
+
+  function trapFocus(e) {
+    var f = [].slice.call(el.querySelectorAll("a[href], button:not([hidden])")).filter(function (n) { return n.offsetParent !== null; });
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  }
+
+  function isOpen() { return !el.hidden; }
+
+  function reveal() {
+    el.hidden = false;
+    document.documentElement.classList.add("lu-lock");
+    requestAnimationFrame(function () { el.classList.add("is-open"); });
+  }
+
+  function begin() {
+    sound.boom();
+    sound.hum(true);
+    if (reduced) {
+      drawDna(0);
+    } else {
+      cancelAnimationFrame(raf);
+      (function loop(t) { drawDna(t); raf = requestAnimationFrame(loop); })(0);
+    }
+    clearInterval(hexTimer);
+    hexTimer = setInterval(fillHex, reduced ? 2000 : 140);
+    fillHex();
+  }
+
+  function open(key, card) {
+    origin = card || null;
+    if (isOpen()) return show(key);
+    current = keys.indexOf(key);
+    reveal();
+    sound.unlock();
+    begin();
+    show(key);
+    q(".lu-close").focus();
+  }
+
+  function openGated(key) {
+    current = keys.indexOf(key);
+    reveal();
+    startBtn.hidden = false;
+    startBtn.focus();
+  }
+
+  function close() {
+    run++;
+    clearTimeout(lockTimer);
+    clearTimeout(speakTimer);
+    clearInterval(hexTimer);
+    cancelAnimationFrame(raf);
+    sound.stopSpeaking();
+    sound.hum(false);
+    el.classList.remove("is-open", "is-scanning", "is-locked");
+    el.hidden = true;
+    startBtn.hidden = true;
+    document.documentElement.classList.remove("lu-lock");
+    history.replaceState(null, "", location.pathname + location.search);
+    if (origin) {
+      origin.setAttribute("data-skip-focus", "1");
+      origin.focus();
+    }
+  }
+
+  function step(d) {
+    if (!startBtn.hidden) return;
+    show(keys[(current + d + keys.length) % keys.length]);
+  }
+
+  function show(key) {
+    var i = keys.indexOf(key);
+    if (i < 0) return;
+    current = i;
+    var p = people[key];
+    var my = ++run;
+    clearTimeout(lockTimer);
+    clearTimeout(speakTimer);
+    sound.stopSpeaking();
+
+    q(".lu-id").textContent = ids[key];
+    q(".lu-name").textContent = p.name;
+    img.src = photos[key];
+    img.alt = p.name;
+    q(".lu-count").textContent = (i + 1) + " / " + keys.length;
+    status.textContent = "Scanning…";
+    history.replaceState(null, "", "#" + key);
+
+    var list = q(".lu-assoc-list");
+    list.innerHTML = "";
+    keys.forEach(function (k) {
+      if (k === key) return;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("aria-label", "Scan " + people[k].name);
+      btn.title = people[k].name;
+      btn.innerHTML = '<img alt="" src="' + photos[k] + '">';
+      btn.addEventListener("click", function () { show(k); });
+      list.appendChild(btn);
+    });
+
+    var links = q(".lu-links");
+    links.innerHTML = "";
+    if (p.scholar) addLink(links, p.scholar.url, "Google Scholar ↗", true);
+    if (p.email) addLink(links, "mailto:" + p.email, p.email, false);
+
+    dl.innerHTML = "";
+    var nodes = dossierLines(p).map(function (r) {
+      var row = document.createElement("div");
+      row.className = "lu-row";
+      var dt = document.createElement("dt");
+      dt.textContent = r[0];
+      var dd = document.createElement("dd");
+      dd.textContent = r[1];
+      row.appendChild(dt);
+      row.appendChild(dd);
+      dl.appendChild(row);
+      return { row: row, v: dd, text: r[1] };
+    });
+
+    el.classList.remove("is-scanning", "is-locked");
+    void el.offsetWidth;
+    el.classList.add("is-scanning");
+    sound.whoosh();
+    sound.scan();
+
+    var lockAfter = reduced ? 0 : 1300;
+    lockTimer = setTimeout(function () {
+      if (my !== run) return;
+      el.classList.add("is-locked");
+      status.textContent = "Identity confirmed";
+      sound.lock();
+    }, lockAfter);
+    speakTimer = setTimeout(function () {
+      if (my === run) sound.speak(narrationFor(p, ids[key]));
+    }, reduced ? 200 : 700);
+
+    if (reduced) return;
+    nodes.forEach(function (n) { n.row.hidden = true; n.v.textContent = ""; });
+    setTimeout(function () {
+      typeRows(nodes, function () { return my === run; }, sound);
+    }, 450);
+  }
+
+  function addLink(parent, href, text, external) {
+    var a = document.createElement("a");
+    a.className = "lu-link";
+    a.href = href;
+    a.textContent = text;
+    if (external) { a.target = "_blank"; a.rel = "noopener"; }
+    parent.appendChild(a);
+  }
+
+  function fillHex() {
+    var out = [];
+    for (var r = 0; r < 6; r++) {
+      var row = [];
+      for (var c = 0; c < 8; c++) row.push(Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, "0"));
+      out.push(row.join(" "));
+    }
+    hexEl.textContent = out.join("\n");
+  }
+
+  function drawDna(t) {
+    var w = canvas.width;
+    var h = canvas.height;
+    g2.clearRect(0, 0, w, h);
+    for (var x = 4; x < w; x += 9) {
+      var ph = x * 0.055 + t * 0.0025;
+      var s = Math.sin(ph);
+      var depth = (Math.cos(ph) + 1) / 2;
+      var y1 = h / 2 + s * h * 0.36;
+      var y2 = h / 2 - s * h * 0.36;
+      g2.strokeStyle = "rgba(127,224,255," + (0.12 + depth * 0.3).toFixed(2) + ")";
+      g2.lineWidth = 1;
+      g2.beginPath();
+      g2.moveTo(x, y1);
+      g2.lineTo(x, y2);
+      g2.stroke();
+      g2.fillStyle = "rgba(95,211,255," + (0.35 + depth * 0.65).toFixed(2) + ")";
+      g2.beginPath();
+      g2.arc(x, y1, 1.4 + depth * 1.6, 0, 6.283);
+      g2.fill();
+      g2.fillStyle = "rgba(212,107,255," + (1 - depth * 0.65).toFixed(2) + ")";
+      g2.beginPath();
+      g2.arc(x, y2, 1.4 + (1 - depth) * 1.6, 0, 6.283);
+      g2.fill();
+    }
+  }
+
+  return { open: open, isOpen: isOpen };
+}
+
 function createAiSound() {
   var btn = document.querySelector(".ai-sound-toggle");
   var ctx = null;
+  var noise = null;
+  var humNodes = null;
   var lastBlip = 0;
+  var listeners = [];
+  var voice = null;
   var on = true;
   try { on = localStorage.getItem("mmst-ai-sound") !== "off"; } catch (e) {}
+
+  var synth = window.speechSynthesis;
+  function pickVoice() {
+    if (!synth) return;
+    var novelty = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Grandma|Grandpa|Junior|Ralph|Fred|Kathy)\b/;
+    var vs = synth.getVoices().filter(function (v) { return /^en/i.test(v.lang) && !novelty.test(v.name); });
+    var prefer = ["Google UK English Male", "Daniel", "Microsoft Ryan", "Microsoft Guy", "Google US English", "Alex"];
+    for (var i = 0; i < prefer.length && !voice; i++) {
+      voice = vs.filter(function (v) { return v.name.indexOf(prefer[i]) === 0; })[0] || null;
+    }
+    if (!voice) voice = vs.filter(function (v) { return /en-GB/i.test(v.lang); })[0] || vs[0] || null;
+  }
+  if (synth) {
+    pickVoice();
+    synth.addEventListener && synth.addEventListener("voiceschanged", pickVoice);
+  }
 
   function running() { return ctx && ctx.state === "running"; }
 
@@ -334,42 +691,50 @@ function createAiSound() {
       var AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       ctx = new AC();
-      ctx.onstatechange = update;
+      ctx.onstatechange = notify;
     }
     if (ctx.state === "suspended") ctx.resume();
   }
 
-  function update() {
-    if (!btn) return;
-    var live = on && running();
-    btn.setAttribute("aria-pressed", live ? "true" : "false");
-    btn.querySelector(".label").textContent = !on ? "AI sound: off" : live ? "AI sound: on" : "Enable AI sound";
+  function notify() {
+    if (btn) {
+      var live = on && running();
+      btn.setAttribute("aria-pressed", live ? "true" : "false");
+      btn.querySelector(".label").textContent = !on ? "AI sound: off" : live ? "AI sound: on" : "Enable AI sound";
+    }
+    listeners.forEach(function (fn) { fn(); });
   }
 
-  function unlock() {
-    if (on) ensure();
-    ["pointerdown", "keydown", "touchstart"].forEach(function (t) { document.removeEventListener(t, unlock); });
+  function unlock() { if (on) ensure(); }
+  function firstGesture() {
+    unlock();
+    ["pointerdown", "keydown", "touchstart"].forEach(function (t) { document.removeEventListener(t, firstGesture); });
   }
-  ["pointerdown", "keydown", "touchstart"].forEach(function (t) { document.addEventListener(t, unlock); });
+  ["pointerdown", "keydown", "touchstart"].forEach(function (t) { document.addEventListener(t, firstGesture); });
+
+  function toggle() {
+    if (on && !running()) {
+      ensure();
+    } else {
+      on = !on;
+      if (on) ensure();
+      else { stopSpeaking(); hum(false); }
+    }
+    try { localStorage.setItem("mmst-ai-sound", on ? "on" : "off"); } catch (e) {}
+    notify();
+    if (on) setTimeout(done, 60);
+  }
 
   if (btn) {
     btn.hidden = false;
-    btn.addEventListener("click", function () {
-      if (on && !running()) {
-        ensure();
-      } else {
-        on = !on;
-        if (on) ensure();
-      }
-      try { localStorage.setItem("mmst-ai-sound", on ? "on" : "off"); } catch (e) {}
-      update();
-      if (on) setTimeout(done, 60);
-    });
-    update();
+    btn.addEventListener("click", toggle);
+    notify();
   }
 
+  function audible() { return on && ctx && ctx.state !== "closed"; }
+
   function tone(f1, f2, dur, type, vol, delay) {
-    if (!on || !running()) return;
+    if (!audible()) return;
     var t = ctx.currentTime + (delay || 0);
     var o = ctx.createOscillator();
     var g = ctx.createGain();
@@ -402,5 +767,93 @@ function createAiSound() {
     tone(1760, null, 0.12, "sine", 0.03, 0.09);
   }
 
-  return { blip: blip, scan: scan, done: done };
+  function lock() {
+    tone(880, null, 0.07, "square", 0.02);
+    tone(1175, null, 0.07, "square", 0.02, 0.08);
+    tone(1568, null, 0.16, "sine", 0.04, 0.16);
+  }
+
+  function boom() {
+    tone(120, 34, 0.9, "sine", 0.35);
+    tone(60, 30, 1.1, "triangle", 0.12, 0.02);
+  }
+
+  function whoosh() {
+    if (!audible()) return;
+    if (!noise) {
+      noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      var d = noise.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    var t = ctx.currentTime;
+    var src = ctx.createBufferSource();
+    var f = ctx.createBiquadFilter();
+    var g = ctx.createGain();
+    src.buffer = noise;
+    f.type = "bandpass";
+    f.Q.value = 1.2;
+    f.frequency.setValueAtTime(300, t);
+    f.frequency.exponentialRampToValueAtTime(3200, t + 0.55);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t + 0.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+    src.connect(f);
+    f.connect(g);
+    g.connect(ctx.destination);
+    src.start(t);
+    src.stop(t + 0.75);
+  }
+
+  function hum(start) {
+    if (!start) {
+      if (humNodes && ctx) {
+        var t = ctx.currentTime;
+        humNodes.g.gain.cancelScheduledValues(t);
+        humNodes.g.gain.setTargetAtTime(0.0001, t, 0.15);
+        var n = humNodes;
+        setTimeout(function () { n.o1.stop(); n.o2.stop(); }, 800);
+      }
+      humNodes = null;
+      return;
+    }
+    if (humNodes || !audible()) return;
+    var o1 = ctx.createOscillator();
+    var o2 = ctx.createOscillator();
+    var lp = ctx.createBiquadFilter();
+    var g = ctx.createGain();
+    o1.type = o2.type = "sawtooth";
+    o1.frequency.value = 55;
+    o2.frequency.value = 55.6;
+    lp.type = "lowpass";
+    lp.frequency.value = 380;
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.setTargetAtTime(0.018, ctx.currentTime, 0.6);
+    o1.connect(lp);
+    o2.connect(lp);
+    lp.connect(g);
+    g.connect(ctx.destination);
+    o1.start();
+    o2.start();
+    humNodes = { o1: o1, o2: o2, g: g };
+  }
+
+  function speak(text) {
+    if (!on || !synth) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    if (voice) u.voice = voice;
+    u.lang = voice ? voice.lang : "en-GB";
+    u.rate = 0.98;
+    u.pitch = 0.85;
+    synth.speak(u);
+  }
+
+  function stopSpeaking() { if (synth) synth.cancel(); }
+
+  return {
+    blip: blip, scan: scan, done: done, lock: lock, boom: boom, whoosh: whoosh, hum: hum,
+    speak: speak, stopSpeaking: stopSpeaking, unlock: unlock, toggle: toggle,
+    isOn: function () { return on; },
+    onChange: function (fn) { listeners.push(fn); }
+  };
 }
