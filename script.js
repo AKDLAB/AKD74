@@ -359,10 +359,15 @@ function narrationFor(p, id) {
 function initLineup(people, cards, sound, reduced) {
   var keys = cards.map(function (c) { return c.getAttribute("data-person"); });
   var photos = {};
+  var focus = {};
+  var cropStyle = {};
   var ids = {};
   cards.forEach(function (c, i) {
     var k = keys[i];
-    photos[k] = c.querySelector("img").getAttribute("src");
+    var cardImg = c.querySelector("img");
+    photos[k] = cardImg.getAttribute("src");
+    focus[k] = cardImg.style.objectPosition;
+    cropStyle[k] = cardImg.style.cssText;
     var m = (people[k].email || "").match(/\.([a-z]{2}\d+)@/i);
     ids[k] = m ? m[1].toUpperCase() : (k === "akash-deep" ? "MMST-PI" : "MMST-" + String(i + 1).padStart(2, "0"));
   });
@@ -597,6 +602,7 @@ function initLineup(people, cards, sound, reduced) {
     q(".lu-id").textContent = ids[key];
     q(".lu-name").textContent = p.name;
     img.src = photos[key];
+    img.style.objectPosition = focus[key];
     img.alt = p.name;
     q(".lu-count").textContent = (i + 1) + " / " + keys.length;
     status.textContent = "Scanning…";
@@ -611,6 +617,7 @@ function initLineup(people, cards, sound, reduced) {
       btn.setAttribute("aria-label", "Scan " + people[k].name);
       btn.title = people[k].name;
       btn.innerHTML = '<img alt="" src="' + photos[k] + '">';
+      btn.firstChild.style.cssText = cropStyle[k];
       btn.addEventListener("click", function () { show(k); });
       list.appendChild(btn);
     });
