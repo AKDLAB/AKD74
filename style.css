@@ -241,7 +241,7 @@ section.alt { background: var(--bg-alt); }
 }
 
 /* Focus area: environmental remediation */
-#remediation { scroll-margin-top: 70px; }
+section[id] { scroll-margin-top: 70px; }
 
 .eyebrow {
   margin: 0 0 6px;
