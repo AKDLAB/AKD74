@@ -150,7 +150,7 @@ function initAiProfiles(people, reduced) {
   var panel = document.createElement("div");
   panel.className = "ai-panel";
   panel.innerHTML =
-    '<div class="ai-head"><span class="ai-dot"></span>MMST&middot;AI profile</div>' +
+    '<div class="ai-head"><span class="ai-dot"></span>MMST&middot;Profile</div>' +
     '<div class="ai-body"></div>' +
     '<button class="ai-open" type="button">Open full scan &#9656;</button>';
   var body = panel.querySelector(".ai-body");
@@ -163,7 +163,7 @@ function initAiProfiles(people, reduced) {
     var p = people[key];
     var sr = document.createElement("span");
     sr.className = "sr-only";
-    sr.textContent = "AI profile. " + profileLines(p).filter(function (l) { return l.k; })
+    sr.textContent = "Profile. " + profileLines(p).filter(function (l) { return l.k; })
       .map(function (l) { return l.k + ": " + l.v; }).join(". ") + ". Press Enter for the full scan.";
     card.appendChild(sr);
     card.setAttribute("role", "button");
@@ -770,7 +770,7 @@ function createAiSound() {
     if (btn) {
       var live = on && running();
       btn.setAttribute("aria-pressed", live ? "true" : "false");
-      btn.querySelector(".label").textContent = !on ? "AI sound: off" : live ? "AI sound: on" : "Enable AI sound";
+      btn.querySelector(".label").textContent = !on ? "Sound: off" : live ? "Sound: on" : "Enable sound";
     }
     listeners.forEach(function (fn) { fn(); });
   }

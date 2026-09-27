@@ -443,7 +443,7 @@ section[id] { scroll-margin-top: 70px; }
   border-radius: 12px 12px 0 0;
 }
 
-/* AI profile: scan line, glowing panel, typing caret, sound toggle */
+/* Profile panel: scan line, glowing panel, typing caret, sound toggle */
 .sr-only {
   position: absolute;
   width: 1px;
