@@ -1,18 +1,25 @@
 #!/bin/bash
 # Weekly Google Scholar refresh of the website, run on the Mac by launchd
-# (~/Library/LaunchAgents/com.akdlab.scholar-update.plist). It runs on the Mac,
-# not GitHub Actions, because Google Scholar refuses GitHub's servers (HTTP 403).
-# Works in its own copy of the repository, so the external SSD needn't be plugged in.
+# (~/Library/LaunchAgents/com.akdlab.scholar-update.plist): on Mondays at 9:00,
+# and whenever a disk is plugged in, so a week missed while the SSD was
+# unplugged is caught up when it comes back. At most one update every 6 days
+# unless run with --now. It runs on the Mac, not GitHub Actions, because
+# Google Scholar refuses GitHub's servers (HTTP 403).
 set -u
 cd "$(dirname "$0")/.." || exit 1
+STAMP=.git/scholar-last-update
+if [ "${1:-}" != "--now" ] && [ -f "$STAMP" ] && [ -z "$(find "$STAMP" -mtime +5 2>/dev/null)" ]; then
+  exit 0   # updated within the last 6 days
+fi
 echo "=== $(date '+%Y-%m-%d %H:%M')"
-git pull --rebase -q origin main || { echo "git pull failed"; exit 1; }
+git pull --rebase --autostash -q origin main || { echo "git pull failed"; exit 1; }
 /usr/bin/python3 tools/update_scholar.py || exit $?
 if git diff --quiet -- publications.html people.html; then
   echo "Nothing new on Google Scholar."
-  exit 0
+else
+  git add publications.html people.html
+  git -c user.name="Abhijeet" -c user.email="abhijeetvas@gmail.com" \
+    commit -q -m "Update citations and publications from Google Scholar" -- publications.html people.html
+  git push -q origin main && echo "Published." || { echo "git push failed"; exit 1; }
 fi
-git add publications.html people.html
-git -c user.name="Abhijeet" -c user.email="abhijeetvas@gmail.com" \
-  commit -q -m "Update citations and publications from Google Scholar"
-git push -q origin main && echo "Published."
+touch "$STAMP"
