@@ -1,15 +1,16 @@
 #!/bin/bash
 # Weekly Google Scholar refresh of the website, run on the Mac by launchd
 # (~/Library/LaunchAgents/com.akdlab.scholar-update.plist): on Mondays at 9:00,
-# and whenever a disk is plugged in, so a week missed while the SSD was
-# unplugged is caught up when it comes back. At most one update every 6 days
-# unless run with --now. It runs on the Mac, not GitHub Actions, because
+# and whenever the SSD is plugged in. At most one update every 12 hours
+# unless run with --now. launchd starts it through the small app
+# ~/Applications/MMST Scholar Update.app, because macOS lets an app, not a
+# bare script, be allowed to read the external SSD. It runs on the Mac, not GitHub Actions, because
 # Google Scholar refuses GitHub's servers (HTTP 403).
 set -u
 cd "$(dirname "$0")/.." || exit 1
 STAMP=.git/scholar-last-update
-if [ "${1:-}" != "--now" ] && [ -f "$STAMP" ] && [ -z "$(find "$STAMP" -mtime +5 2>/dev/null)" ]; then
-  exit 0   # updated within the last 6 days
+if [ "${1:-}" != "--now" ] && [ -f "$STAMP" ] && [ -z "$(find "$STAMP" -mmin +720 2>/dev/null)" ]; then
+  exit 0   # updated within the last 12 hours
 fi
 echo "=== $(date '+%Y-%m-%d %H:%M')"
 git pull --rebase --autostash -q origin main || { echo "git pull failed"; exit 1; }
