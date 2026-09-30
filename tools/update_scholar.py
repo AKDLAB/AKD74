@@ -12,9 +12,11 @@ Standard library only. Run from anywhere:
     python3 tools/update_scholar.py            # fetch and rewrite the pages
     python3 tools/update_scholar.py --dry-run  # fetch and report, change nothing
 
-GitHub Actions runs it every week (.github/workflows/scholar.yml). If Scholar
-refuses the request, or the result looks wrong (far fewer papers than the page
-already lists), it stops without touching the pages and exits with an error.
+The Mac runs it every Monday through tools/weekly-update.sh, which also
+publishes the change. (Not GitHub Actions: Google Scholar refuses GitHub's
+servers.) If Scholar refuses the request, or the result looks wrong (far fewer
+papers than the page already lists), it stops without touching the pages and
+exits with an error.
 
 Editable inputs, next to this script:
   journal-impact-factors.json  journal name (lower case) -> impact factor, for ordering
