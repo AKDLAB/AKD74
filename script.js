@@ -393,7 +393,7 @@ function pieMarkup(scholar) {
     "</div>" +
     '<div class="pie-badges"><span><b>' + scholar.h + "</b>h-index</span><span><b>" + scholar.i10 + "</b>i10-index</span></div>" +
     '<ul class="pie-legend">' + legend + "</ul>" +
-    '<p class="pie-note">* 2026 to date. Undated: citations Scholar lists without a year.</p>';
+    '<p class="pie-note">* ' + new Date().getFullYear() + ' to date. Undated: citations Scholar lists without a year.</p>';
 }
 
 function initLineup(people, cards, sound, reduced) {

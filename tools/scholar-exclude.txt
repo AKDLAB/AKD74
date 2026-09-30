@@ -1,0 +1,25 @@
+# Google Scholar entries left off the Publications page, one title per line.
+# Scholar's profile has papers by other people named "A Deep" and a few broken
+# entries. Add a title here (or its first few words) to hide it; lines starting with # are ignored.
+HPTLC densitometric quantification of stigmasterol and lupeol from Ficus religiosa
+Thiophene scaffold as prospective central nervous system agent: A review
+Public perception on SARS-CoV-2 transmission and air disinfection systems: A study
+Optimization of LPG Diffusion Flame Synthesis of CNT Structures using Statistical Design of Experiments (SDOE)
+Biodiesel as an Alternative Fuel: A Review
+Optimization of LPG diffusion flame synthesis of carbon-nanotubed Structures using Statistical Design of Experiments (SDOE)
+Study of eco-friendly combined system for refrigeration and power generation
+Comparative assessment of landslide susceptibility using heuristic and statistical models in Chamoli, Uttarakhand, India
+Spatiotemporal Dynamics of Air Pollution and Its Linkages with Land Use and Surface Temperature Using GIS and Remote Sensing: A Case Study of Dehradun, India
+1 Impact of Land Use Land Cover (LULC) Change on Watershed Hydrology: A Review
+Dynamic Assessment of Soil Erosion Risk Using Hydrological Model and Geospatial Approach: A Case Study from Chamoli, Uttarakhand
+Investigation on Mechanical Properties of Copper-Based Green Composites: A Review
+THE QUEST FOR HOME IN AMITAV GHOSH’S THE SHADOW LINES, THE GLASS PALACE, AND THE HUNGRY TIDE
+Formulation and evaluation of polyherbal anti-diabetic tablet for oral drug delivery system
+MANAGING COVID PANDEMIC IN OBSTETRICS AND GYNAECOLOGY: EXPERIENCE OF A TERTIARY CARE HOSPITAL OF PUNJAB
+A generic algorithm for extraction, analysis and presentation of important journal information from online journals
+Development and Evaluation of Novel Biodegradable Docetaxel Loaded Microspheres of Poly (D, L-Lactide-Co-Glycolic acid) and Poly (ε-Caprolactone) for Controlled Drug Delivery.
+Ubiquitous Information System to Solve Farmers Problems
+Artificial Intelligence and Machine Learning Driven Landslide Analysis: Scar Segmentation, Susceptibility and Sensitivity Analysis using Naive Bayes and K-nearest neighbor in …
+Functionalization of Biocompatible Metal-Organic Framework by Ascorbic Acid as a Selective Nanoprobe for the Fluoro-Chromic Detection of Emerging Pollutant Hexavalent Chromium
+Analytical Methods
+GQD-MOF based composite for Photovoltaic Applications
