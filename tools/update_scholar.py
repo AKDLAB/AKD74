@@ -12,7 +12,7 @@ Standard library only. Run from anywhere:
     python3 tools/update_scholar.py            # fetch and rewrite the pages
     python3 tools/update_scholar.py --dry-run  # fetch and report, change nothing
 
-The Mac runs it weekly through tools/weekly-update.sh, which also
+The Mac runs it daily through tools/weekly-update.sh, which also
 publishes the change. (Not GitHub Actions: Google Scholar refuses GitHub's
 servers.) If Scholar refuses the request, or the result looks wrong (far fewer
 papers than the page already lists), it stops without touching the pages and
@@ -331,7 +331,7 @@ def publications_section(s, journals, books, confs):
     {stats}
 
     <p class="pub-note">Journal articles are ordered by the journal's impact factor (highest first).
-      Citation counts from Google Scholar, {month}; updated automatically every week.</p>
+      Citation counts from Google Scholar, {month}; updated automatically every day.</p>
 
 {body}
   </div>

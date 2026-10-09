@@ -1,7 +1,8 @@
 #!/bin/bash
-# Weekly Google Scholar refresh of the website, run on the Mac by launchd
-# (~/Library/LaunchAgents/com.akdlab.scholar-update.plist): on Mondays at 9:00,
-# and whenever the SSD is plugged in. At most one update every 12 hours
+# Daily Google Scholar refresh of the website, run on the Mac by launchd
+# (~/Library/LaunchAgents/com.akdlab.scholar-update.plist): every day at 9:00,
+# and whenever the SSD is plugged in. (The file keeps its old name so the
+# launcher script keeps finding it.) At most one update every 12 hours
 # unless run with --now. launchd starts it through the small app
 # ~/Applications/MMST Scholar Update.app, because macOS lets an app, not a
 # bare script, be allowed to read the external SSD. It runs on the Mac, not GitHub Actions, because
