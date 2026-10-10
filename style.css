@@ -408,6 +408,7 @@ section[id] { scroll-margin-top: 70px; }
 
 .pi-card h3 { margin: 0 0 4px; color: var(--navy); font-size: 1.25rem; }
 .pi-card .role { color: var(--accent); font-weight: 600; margin-bottom: 12px; font-size: 0.92rem; }
+.pi-card .email { color: var(--muted); font-size: 0.88rem; margin: -8px 0 12px; word-break: break-word; }
 .pi-card ul { margin: 10px 0 0; padding-left: 20px; color: var(--text); font-size: 0.93rem; }
 .pi-card li { margin-bottom: 4px; }
 
